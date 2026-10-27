@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { CortexDebugChannel } from '../dbgmsgs';
+import { LIVE_WATCH_FORMATS } from '../live-watch-format';
 import { LiveWatchTreeProvider, LiveVariableNode } from './views/live-watch';
 
 import { RTTCore, SWOCore } from './swo/core';
@@ -57,8 +58,10 @@ export class CortexDebugExtension {
 
         this.liveWatchProvider = new LiveWatchTreeProvider(this.context);
         this.liveWatchTreeView = vscode.window.createTreeView('cortex-debug.liveWatch', {
-            treeDataProvider: this.liveWatchProvider
+            treeDataProvider: this.liveWatchProvider,
+            dragAndDropController: this.liveWatchProvider
         });
+        this.liveWatchProvider.attachView(this.liveWatchTreeView);
 
         vscode.commands.executeCommand('setContext', `cortex-debug:${CortexDebugKeys.VARIABLE_DISPLAY_MODE}`,
             config.get(CortexDebugKeys.VARIABLE_DISPLAY_MODE, true));
@@ -82,11 +85,30 @@ export class CortexDebugExtension {
             vscode.commands.registerCommand('cortex-debug.liveWatch.addToLiveWatch', this.addToLiveWatch.bind(this)),
             vscode.commands.registerCommand('cortex-debug.liveWatch.moveUp', this.moveUpLiveWatchExpr.bind(this)),
             vscode.commands.registerCommand('cortex-debug.liveWatch.moveDown', this.moveDownLiveWatchExpr.bind(this)),
+            vscode.commands.registerCommand('cortex-debug.liveWatch.turnOn', () => this.liveWatchProvider.setEnabled(true)),
+            vscode.commands.registerCommand('cortex-debug.liveWatch.turnOff', () => this.liveWatchProvider.setEnabled(false)),
+            vscode.commands.registerCommand('cortex-debug.liveWatch.refresh', () => this.liveWatchProvider.refresh()),
+            vscode.commands.registerCommand('cortex-debug.liveWatch.removeAll', () => this.liveWatchProvider.removeAll()),
+            ...LIVE_WATCH_FORMATS.map((format) => vscode.commands.registerCommand(`cortex-debug.liveWatch.format.${format}`, (node) => {
+                this.liveWatchProvider.setFormat(node ?? this.liveWatchTreeView.selection[0], format);
+            })),
+            vscode.commands.registerCommand('cortex-debug.liveWatch.format.default', (node) => {
+                this.liveWatchProvider.setFormat(node ?? this.liveWatchTreeView.selection[0]);
+            }),
+            vscode.commands.registerCommand('cortex-debug.liveWatch.copyValue', (node) => {
+                const selected = node ?? this.liveWatchTreeView.selection[0];
+                if (selected) { vscode.env.clipboard.writeText(selected.value); }
+            }),
+            vscode.commands.registerCommand('cortex-debug.liveWatch.copyExpression', (node) => {
+                const selected = node ?? this.liveWatchTreeView.selection[0];
+                if (selected) { vscode.env.clipboard.writeText(selected.expression); }
+            }),
 
             vscode.workspace.onDidChangeConfiguration(this.settingsChanged.bind(this)),
             vscode.debug.onDidReceiveDebugSessionCustomEvent(this.receivedCustomEvent.bind(this)),
             vscode.debug.onDidStartDebugSession(this.debugSessionStarted.bind(this)),
             vscode.debug.onDidTerminateDebugSession(this.debugSessionTerminated.bind(this)),
+            vscode.debug.onDidChangeActiveDebugSession((session) => this.liveWatchProvider.selectSession(session)),
             vscode.window.onDidChangeActiveTextEditor(this.activeEditorChanged.bind(this)),
             vscode.window.onDidCloseTerminal(this.terminalClosed.bind(this)),
             vscode.workspace.onDidCloseTextDocument(this.textDocsClosed.bind(this)),
@@ -97,6 +119,8 @@ export class CortexDebugExtension {
             vscode.debug.registerDebugConfigurationProvider('cortex-debug', new CortexDebugConfigurationProvider(context)),
 
             this.liveWatchTreeView,
+            this.liveWatchProvider,
+            this.liveWatchTreeView.onDidChangeVisibility((event) => this.liveWatchProvider.setVisible(event.visible)),
             this.liveWatchTreeView.onDidExpandElement((e) => {
                 this.liveWatchProvider.expandChildren(e.element);
                 this.liveWatchProvider.saveState();
@@ -395,6 +419,7 @@ export class CortexDebugExtension {
         if (session.type !== 'cortex-debug') { return; }
 
         const newSession = CDebugSession.NewSessionStarted(session);
+        this.liveWatchProvider.debugSessionStarted(session);
 
         this.functionSymbols = null;
         session.customRequest('get-arguments').then((args) => {
@@ -448,6 +473,9 @@ export class CortexDebugExtension {
         const session = e.session;
         if (session.type !== 'cortex-debug') { return; }
         switch (e.event) {
+            case 'custom-event-live-watch-state':
+                this.liveWatchProvider.liveStateChanged(e.session, !!e.body.info?.available);
+                break;
             case 'custom-stop':
                 this.receivedStopEvent(e);
                 break;
@@ -860,8 +888,8 @@ export class CortexDebugExtension {
             ignoreFocusOut: true,
             prompt: 'Enter Live Watch Expression'
         }).then((v) => {
-            if (v && vscode.debug.activeDebugSession) {
-                this.liveWatchProvider.addWatchExpr(v, vscode.debug.activeDebugSession);
+            if (v) {
+                this.liveWatchProvider.addWatchExpr(v);
             }
         });
     }
@@ -892,11 +920,11 @@ export class CortexDebugExtension {
     }
 
     private removeLiveWatchExpr(node: any) {
-        this.liveWatchProvider.removeWatchExpr(node);
+        this.liveWatchProvider.removeWatchExpr(node ?? this.liveWatchTreeView.selection[0]);
     }
 
     private editLiveWatchExpr(node: any) {
-        this.liveWatchProvider.editNode(node);
+        this.liveWatchProvider.editNode(node ?? this.liveWatchTreeView.selection[0]);
     }
 
     private moveUpLiveWatchExpr(node: any) {

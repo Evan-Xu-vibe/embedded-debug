@@ -6,6 +6,7 @@ import { MIError, VariableObject } from './backend/backend';
 import * as crypto from 'crypto';
 import { MINode } from './backend/mi_parse';
 import { expandValue } from './backend/gdb_expansion';
+import { isLiveWatchFormat, LiveWatchEvaluateArguments, LiveWatchVariablesArguments } from './live-watch-format';
 
 export type VariableType = string | VariableObject | ExtendedVariable;
 export interface NameToVarChangeInfo {
@@ -22,17 +23,18 @@ export class VariablesHandler {
     ) { }
 
     public async clearCachedVars(miDebugger: MI2) {
-        if (this.cachedChangeList) {
-            const poromises = [];
-            for (const name of Object.keys(this.cachedChangeList)) {
-                poromises.push(miDebugger.sendCommand(`var-delete ${name}`));
+        const promises = [];
+        for (const [name, reference] of this.variableHandlesReverse) {
+            const variable = this.variableHandles.get(reference);
+            if (variable instanceof VariableObject && variable.parent === 0) {
+                promises.push(miDebugger.sendCommand(`var-delete ${name}`));
             }
-            this.cachedChangeList = {};
-            const results = await Promise.allSettled(poromises);
-            results
-                .filter((r) => r.status === 'rejected')
-                .forEach((r) => console.error('clearCachedValues', r.reason));
         }
+        const results = await Promise.allSettled(promises);
+        results.filter((r) => r.status === 'rejected').forEach((r) => console.error('clearCachedValues', r.reason));
+        this.cachedChangeList = undefined;
+        this.variableHandles.reset();
+        this.variableHandlesReverse.clear();
     }
 
     public refreshCachedChangeList(miDebugger: MI2, resolve) {
@@ -76,6 +78,15 @@ export class VariablesHandler {
     }
 
     private evaluateQ = new RequestQueue<DebugProtocol.EvaluateResponse, DebugProtocol.EvaluateArguments>();
+    private async formattedValue(miDebugger: MI2, variable: VariableObject, format: unknown): Promise<string> {
+        if (!isLiveWatchFormat(format)) { throw new Error('Unsupported Live Watch display format'); }
+        // Ask GDB to format this read only: preserve type/width, var-object state and other rows.
+        const result = await miDebugger.sendCommand(`var-evaluate-expression -f ${format} ${JSON.stringify(variable.name)}`);
+        const value: unknown = result.result('value');
+        if (typeof value !== 'string') { throw new Error('GDB returned no formatted value'); }
+        return value;
+    }
+
     public evaluateRequest(
         r: DebugProtocol.EvaluateResponse, a: DebugProtocol.EvaluateArguments,
         miDebugger: MI2, session: GDBDebugSession, forceNoFrameId = false): Promise<void> {
@@ -176,6 +187,10 @@ export class VariablesHandler {
                         }
 
                         response.body = varObj.toProtocolEvaluateResponseBody();
+                        const format = (args as LiveWatchEvaluateArguments).liveWatchFormat;
+                        if (format !== undefined) {
+                            response.body.result = await this.formattedValue(miDebugger, varObj, format);
+                        }
                         response.success = true;
                         session.sendResponse(response);
                     } catch (err) {
@@ -296,6 +311,17 @@ export class VariablesHandler {
                         });
                     }
 
+                    const formats = (args as LiveWatchVariablesArguments).liveWatchFormats;
+                    for (let index = 0; index < vars.length; index++) {
+                        const variable = vars[index];
+                        if (formats && Object.prototype.hasOwnProperty.call(formats, variable.name)) {
+                            try {
+                                variable.value = await this.formattedValue(miDebugger, children[index], formats[variable.name]);
+                            } catch (error) {
+                                variable.value = `<${String(error)}>`;
+                            }
+                        }
+                    }
                     response.body = {
                         variables: vars
                     };
@@ -421,7 +447,8 @@ export class LiveWatchMonitor {
     }
 
     protected quitEvent() {
-        // this.miDebugger = undefined;
+        this.miDebugger = undefined;
+        this.mainSession.liveWatchExited(this);
     }
 
     public evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): Promise<void> {

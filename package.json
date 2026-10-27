@@ -21,7 +21,7 @@
                     },
                     "cortex-debug.liveWatchRefreshRate": {
                         "default": 300,
-                        "description": "GUI refresh frequency in milliseconds. Your sample rate can be much faster than refresh rate. VSCode UI cannot handle high refresh rates and your Live Watch window will look frozen. Do not recommend below 250ms as it will not be legible anyways. Anything below 200ms did not work at all for us",
+                        "description": "Minimum interval in milliseconds between Live Watch updates. Pauses polling when the panel is hidden or live updates are disabled; effective minimum is 200ms",
                         "type": "number",
                         "multipleOf": 1,
                         "minimum": 100,
@@ -470,6 +470,70 @@
                 "command": "cortex-debug.liveWatch.addExpr",
                 "title": "Add expression to Live Watch window",
                 "icon": "$(plus)"
+            },
+            {
+                "command": "cortex-debug.liveWatch.turnOn",
+                "title": "Enable Live Updates",
+                "category": "Cortex-Debug",
+                "icon": "$(play)"
+            },
+            {
+                "command": "cortex-debug.liveWatch.turnOff",
+                "title": "Disable Live Updates",
+                "category": "Cortex-Debug",
+                "icon": "$(debug-pause)"
+            },
+            {
+                "command": "cortex-debug.liveWatch.refresh",
+                "title": "Refresh Live Watch",
+                "category": "Cortex-Debug",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "cortex-debug.liveWatch.removeAll",
+                "title": "Remove All Expressions",
+                "category": "Cortex-Debug",
+                "icon": "$(close-all)"
+            },
+            {
+                "command": "cortex-debug.liveWatch.copyValue",
+                "title": "Copy Value",
+                "category": "Cortex-Debug"
+            },
+            {
+                "command": "cortex-debug.liveWatch.copyExpression",
+                "title": "Copy Expression",
+                "category": "Cortex-Debug"
+            },
+            {
+                "command": "cortex-debug.liveWatch.format.default",
+                "title": "Default (Global / Expression)",
+                "category": "Cortex-Debug"
+            },
+            {
+                "command": "cortex-debug.liveWatch.format.natural",
+                "title": "Natural",
+                "category": "Cortex-Debug"
+            },
+            {
+                "command": "cortex-debug.liveWatch.format.hexadecimal",
+                "title": "Hexadecimal",
+                "category": "Cortex-Debug"
+            },
+            {
+                "command": "cortex-debug.liveWatch.format.decimal",
+                "title": "Decimal",
+                "category": "Cortex-Debug"
+            },
+            {
+                "command": "cortex-debug.liveWatch.format.binary",
+                "title": "Binary",
+                "category": "Cortex-Debug"
+            },
+            {
+                "command": "cortex-debug.liveWatch.format.octal",
+                "title": "Octal",
+                "category": "Cortex-Debug"
             }
         ],
         "keybindings": [
@@ -477,6 +541,16 @@
                 "command": "cortex-debug.toggleVariableHexFormat",
                 "key": "ctrl+shift+x",
                 "when": "debugType == cortex-debug"
+            },
+            {
+                "command": "cortex-debug.liveWatch.editExpr",
+                "key": "f2",
+                "when": "view == cortex-debug.liveWatch && listFocus && !inputFocus"
+            },
+            {
+                "command": "cortex-debug.liveWatch.removeExpr",
+                "key": "delete",
+                "when": "view == cortex-debug.liveWatch && listFocus && !inputFocus"
             }
         ],
         "languages": [
@@ -836,12 +910,12 @@
                                 "properties": {
                                     "enabled": {
                                         "default": false,
-                                        "description": "Enable/Disable Live Watch. Only applies to OpenOCD",
+                                        "description": "Enable the independent Live Watch panel for global/static expressions using a second GDB connection",
                                         "type": "boolean"
                                     },
                                     "samplesPerSecond": {
                                         "default": 2,
-                                        "description": "Maximum number of samples per second. Different from GUI refresh-rate, which is a user/workspace setting",
+                                        "description": "Maximum Live Watch refreshes per second. Also limited by cortex-debug.liveWatchRefreshRate and a 5 Hz UI cap",
                                         "type": "number",
                                         "multipleOf": 1,
                                         "minimum": 0,
@@ -2022,12 +2096,12 @@
                                 "properties": {
                                     "enabled": {
                                         "default": false,
-                                        "description": "Enable/Disable Live Watch. Only applies to OpenOCD",
+                                        "description": "Enable the independent Live Watch panel for global/static expressions using a second GDB connection",
                                         "type": "boolean"
                                     },
                                     "samplesPerSecond": {
                                         "default": 2,
-                                        "description": "Maximum number of samples per second. Different from GUI refresh-rate, which is a user/workspace setting",
+                                        "description": "Maximum Live Watch refreshes per second. Also limited by cortex-debug.liveWatchRefreshRate and a 5 Hz UI cap",
                                         "type": "number",
                                         "multipleOf": 1,
                                         "minimum": 0,
@@ -3028,8 +3102,75 @@
                     "when": "debugType == cortex-debug"
                 },
                 {
-                    "command": "cortex-debug.liveWatch.addExpr",
-                    "when": "debugType === cortex-debug"
+                    "command": "cortex-debug.liveWatch.addExpr"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.turnOn",
+                    "when": "cortex-debug:liveWatchAvailable && !cortex-debug:liveWatchEnabled"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.turnOff",
+                    "when": "cortex-debug:liveWatchAvailable && cortex-debug:liveWatchEnabled"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.refresh",
+                    "when": "cortex-debug:liveWatchAvailable"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.removeAll",
+                    "when": "cortex-debug:liveWatchHasExpressions"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.copyValue",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.copyExpression",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.editExpr",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.removeExpr",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.moveUp",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.moveDown",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.addToLiveWatch",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.default",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.natural",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.hexadecimal",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.decimal",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.binary",
+                    "when": "false"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.octal",
+                    "when": "false"
                 }
             ],
             "debug/toolBar": [
@@ -3043,22 +3184,37 @@
                 {
                     "command": "cortex-debug.liveWatch.editExpr",
                     "when": "view == cortex-debug.liveWatch && viewItem == expression",
-                    "group": "inline"
+                    "group": "1_modification@1"
                 },
                 {
                     "command": "cortex-debug.liveWatch.moveUp",
                     "when": "view == cortex-debug.liveWatch && viewItem == expression",
-                    "group": "inline"
+                    "group": "3_move@1"
                 },
                 {
                     "command": "cortex-debug.liveWatch.moveDown",
                     "when": "view == cortex-debug.liveWatch && viewItem == expression",
-                    "group": "inline"
+                    "group": "3_move@2"
                 },
                 {
                     "command": "cortex-debug.liveWatch.removeExpr",
                     "when": "view == cortex-debug.liveWatch && viewItem == expression",
                     "group": "inline"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.copyValue",
+                    "when": "view == cortex-debug.liveWatch",
+                    "group": "2_copy"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.copyExpression",
+                    "when": "view == cortex-debug.liveWatch",
+                    "group": "2_copy"
+                },
+                {
+                    "submenu": "cortex-debug.liveWatch.displayFormat",
+                    "when": "view == cortex-debug.liveWatch",
+                    "group": "2_format"
                 }
             ],
             "view/title": [
@@ -3096,6 +3252,26 @@
                     "command": "cortex-debug.varHexModeTurnOff",
                     "when": "view == cortex-debug.liveWatch && inDebugMode && debugType == 'cortex-debug' && debugState == stopped && !cortex-debug:variableUseNaturalFormat",
                     "group": "navigation"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.turnOn",
+                    "when": "view == cortex-debug.liveWatch && cortex-debug:liveWatchAvailable && !cortex-debug:liveWatchEnabled",
+                    "group": "navigation"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.turnOff",
+                    "when": "view == cortex-debug.liveWatch && cortex-debug:liveWatchAvailable && cortex-debug:liveWatchEnabled",
+                    "group": "navigation"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.refresh",
+                    "when": "view == cortex-debug.liveWatch && cortex-debug:liveWatchAvailable",
+                    "group": "navigation"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.removeAll",
+                    "when": "view == cortex-debug.liveWatch && cortex-debug:liveWatchHasExpressions",
+                    "group": "navigation"
                 }
             ],
             "debug/variables/context": [
@@ -3104,17 +3280,48 @@
                     "when": "inDebugMode && debugType == 'cortex-debug' && debugState == stopped",
                     "group": "navigation"
                 }
+            ],
+            "cortex-debug.liveWatch.displayFormat": [
+                {
+                    "command": "cortex-debug.liveWatch.format.default"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.natural"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.hexadecimal"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.decimal"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.binary"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.format.octal"
+                }
             ]
         },
         "views": {
             "debug": [
                 {
                     "id": "cortex-debug.liveWatch",
-                    "name": "Cortex Live Watch",
-                    "when": "debugType == cortex-debug"
+                    "name": "Cortex Live Watch"
                 }
             ]
-        }
+        },
+        "viewsWelcome": [
+            {
+                "view": "cortex-debug.liveWatch",
+                "contents": "Watch global and static expressions while your target runs.\n[Add Expression](command:cortex-debug.liveWatch.addExpr)\nEnable liveWatch.enabled in launch.json to connect Live GDB."
+            }
+        ],
+        "submenus": [
+            {
+                "id": "cortex-debug.liveWatch.displayFormat",
+                "label": "Display Format"
+            }
+        ]
     },
     "dependencies": {
         "@vscode/extension-telemetry": "^0.9.8",

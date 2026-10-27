@@ -956,6 +956,7 @@ export class GDBDebugSession extends LoggingDebugSession {
                             await this.startGdbForLiveWatch(liveGdb);
                             this.handleMsg('stdout', 'Started live-monitor-gdb session\n');
                             this.miLiveGdb = liveGdb;
+                            this.sendLiveWatchState();
                         } catch (e) {
                             this.handleMsg('stderr', `Failed to start live-monitor-gdb session. Error: ${e}\n`);
                         }
@@ -1128,6 +1129,17 @@ export class GDBDebugSession extends LoggingDebugSession {
         return ret;
     }
 
+    private sendLiveWatchState() {
+        this.sendEvent(new GenericCustomEvent('live-watch-state', { available: !!this.miLiveGdb }));
+    }
+
+    public liveWatchExited(monitor: LiveWatchMonitor) {
+        if (this.miLiveGdb === monitor) {
+            this.miLiveGdb = undefined;
+            this.sendLiveWatchState();
+        }
+    }
+
     private sendContinue(): Promise<void> {
         return new Promise<void>((resolve) => {
             this.continuing = true;
@@ -1252,6 +1264,10 @@ export class GDBDebugSession extends LoggingDebugSession {
 
         const isBusy = !this.stopped || this.continuing || !this.isMIStatusStopped();
         switch (command) {
+            case 'get-live-watch-state':
+                response.body = { available: !!this.miLiveGdb };
+                this.sendResponse(response);
+                break;
             case 'liveEvaluate':
                 if (this.miLiveGdb) {
                     const r: DebugProtocol.EvaluateResponse = {
@@ -1673,6 +1689,7 @@ export class GDBDebugSession extends LoggingDebugSession {
     protected disconnectRequest2(
         response: DebugProtocol.DisconnectResponse | DebugProtocol.Response,
         args: DebugProtocol.DisconnectArguments): Promise<void> {
+        this.sendEvent(new GenericCustomEvent('live-watch-state', { available: false }));
         if (this.args.showDevDebugOutput) {
             this.handleMsg('stderr', `Client (vscode?) requested end of debug session: ${JSON.stringify(args)}\n`);
         }

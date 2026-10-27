@@ -46,8 +46,8 @@ If the type is marked as `{...}` it means that it is a complex item can have mul
 | ipAddress | string | Both | IP Address for networked J-Link Adapter |
 | jlinkscript | string | Both | J-Link script file - optional input file for customizing J-Link actions. |
 | liveWatch | object | Both | An object with parameters for Live Watch |
-| liveWatch<br>.enabled | boolean | Both | Enable/Disable Live Watch. Only applies to OpenOCD |
-| liveWatch<br>.samplesPerSecond | number | Both | Maximum number of samples per second. Different from GUI refresh-rate, which is a user/workspace setting |
+| liveWatch<br>.enabled | boolean | Both | Enable the independent Live Watch panel for global/static expressions using a second GDB connection |
+| liveWatch<br>.samplesPerSecond | number | Both | Maximum Live Watch refreshes per second. Also limited by cortex-debug.liveWatchRefreshRate and a 5 Hz UI cap |
 | loadFiles | string[] | Launch | List of files (hex/bin/elf files) to load/program instead of the executable file. Symbols are not loaded (see `symbolFiles`). Can be an empty list to specify none. If this property does not exist, then the executable is used to program the device |
 | machine | string | Both | Machine Type Selection - used for QEMU server type |
 | numberOfProcessors | number | Both | Number of processors/cores in the target device. |

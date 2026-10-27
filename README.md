@@ -26,7 +26,7 @@ Debugging support for ARM Cortex-M (and others) Microcontrollers with the follow
 * Initial support for Rust code (most functionality is working; report any issues)
 * RTOS Thread Support in `CALL STACK` window (J-Link, OpenOCD, pyOCD - RTOS supported depend on GDB server)
     * As a general rule do not try to use stepping instructions before the scheduler of your RTOS has started - in many cases this tends to crash the GDB servers or leave it in an inconsistent state.
-* Live Watch with supported GDB servers (tested with OpenOCD, J-Link, STLink so far - since V1.6)
+* Independent Live Watch panel for global/static expressions, with Watch-style editing, reordering and a live-update switch
 * We have a set of extensions that this extension relies on for various frontend services (since V1.6)
   * These services are under the mcu-debug organization and lot of that content was re-factored from this extension to make them work with other debuggers and with browsers
   * Visit https://marketplace.visualstudio.com/search?term=mcu-debug&target=VSCode&category=All%20categories&sortBy=Relevance\
@@ -62,6 +62,27 @@ Requirements:
 ## Usage
 
 See https://github.com/Marus/cortex-debug/wiki for usage information. This needs some help from the community. See https://github.com/Marus/cortex-debug/blob/master/debug_attributes.md for a summary of all properties that are available in your `launch.json`
+
+### Live Watch
+
+The independent **Cortex Live Watch** panel appears in Run and Debug and works with official VS Code. Enable its second GDB connection in your launch or attach configuration:
+
+```json
+"liveWatch": {
+    "enabled": true,
+    "samplesPerSecond": 4
+}
+```
+
+Use the title-bar **+** to add expressions, **Refresh** for a single read, **Remove All Expressions** to clear the list, and **Enable/Disable Live Updates** to control continuous updates. Disabling updates freezes running values without reconnecting GDB or restarting the target. A manual refresh is still available, and pausing refreshes values once.
+
+The panel follows VS Code Watch conventions: `name: value` rows, expandable structures and arrays, highlighted value changes, F2 or the context menu to edit, Delete or the row's remove icon to delete, context-menu copying of values/expressions, and drag and drop to reorder top-level expressions. Editing uses VS Code's input box. The list and expansion state persist per workspace, including existing Live Watch expressions; expressions can be managed before starting a session.
+
+Right-click any expression, structure member or array element and choose **Display Format** to select **Natural**, **Hexadecimal**, **Decimal**, **Binary**, or **Octal**. The choice applies only to that row and is saved with the workspace; a short format label appears beside the value. Choose **Default (Global / Expression)** to follow the existing global format or expression suffix again. Choosing a format triggers one read even when live updates are off, without turning continuous updates on. A parent's format does not automatically change its children.
+
+The active Cortex-Debug session supplies the values and has its own live-update switch. Switching sessions clears transient values and variable references. Closing the panel stops polling; showing it resumes enabled updates. Paused targets refresh once instead of polling. Only global/static expressions are supported in this panel, including while paused; use VS Code's built-in Watch for local variables and stack-frame evaluation.
+
+Refreshes respect both `liveWatch.samplesPerSecond` and `cortex-debug.liveWatchRefreshRate`, with a minimum 200ms interval. Slow reads are serialized. The GDB server must support a second connection and memory access while the target runs; the existing Live Watch backend supports OpenOCD, J-Link and ST-LINK. The new panel workflow has not yet been verified against real hardware.
 
 ## How to Build from sources
 
