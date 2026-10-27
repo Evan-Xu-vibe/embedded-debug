@@ -7,9 +7,8 @@ import { ConfigurationArguments } from './common';
 
 import { v4 as uuidv4 } from 'uuid';
 
-const extension = vscode.extensions.getExtension('marus25.cortex-debug');
-const extensionId = extension.id;
-const extensionVersion = extension.packageJSON.version;
+let extensionId = '';
+let extensionVersion = '';
 const trackingId = 'UA-113901869-1';
 
 const VSCODE_VERSION_DIMENSION = 'cd1';
@@ -56,6 +55,8 @@ function telemetryEnabled(): boolean {
 }
 
 function activate(context: vscode.ExtensionContext) {
+    extensionId = context.extension.id;
+    extensionVersion = context.extension.packageJSON.version;
     if (!telemetryEnabled()) { return; }
 
     analytics = ua(trackingId, getUUID());
@@ -83,7 +84,7 @@ function beginSession(id: string, opts: ConfigurationArguments) {
     if (opts.device) { analytics.set(DEVICE_ID_DIMENSION, opts.device); }
     analytics.set(GDB_SERVER_TYPE_DIMENSION, opts.servertype);
 
-    analytics.screenview('Debug Session', 'Cortex-Debug', extensionVersion, extensionId);
+    analytics.screenview('Debug Session', 'Embedded Debug', extensionVersion, extensionId);
     analytics.event('Session', 'Started', '', 0, { sessionControl: 'start' });
 
     if (opts.swoConfig.enabled) {

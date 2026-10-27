@@ -1,10 +1,14 @@
-# Cortex Debug
+# Embedded Debug
 
-![Visual Studio Code with Cortex-Debug Installed](./images/vs-code-screenshot.png)
+![Visual Studio Code with the upstream debugger installed](./images/vs-code-screenshot.png)
 
-Debugging support for ARM Cortex-M (and others) Microcontrollers with the following features:
+Embedded Debug is a fork of [Cortex-Debug](https://github.com/Marus/cortex-debug), retaining the upstream MIT license and attribution. This fork adds an inline Live Watch sidebar, independent variable display formats, and modern pyOCD connection compatibility.
 
-* While we cannot change the extension name due to VSCode Marketplace rules, this extension can be used by non Cortex-M devices and non ARM devices. People have reported using it with Cortex-R/A, Xtensa, RISC-V and even x86. Your mileage may vary.
+Extension ID: `evan-xu-vibe.embedded-debug`. Existing `launch.json` configurations with `"type": "cortex-debug"` and `cortex-debug.*` settings remain compatible. Disable the original Cortex-Debug extension when using this fork, as both register the same debugger type.
+
+Debugging support for ARM Cortex-M (and other) microcontrollers includes:
+
+* The upstream debugger also supports some non Cortex-M and non ARM devices, including Cortex-R/A, Xtensa, RISC-V and x86; compatibility varies by target.
 * Highly configurable. See https://github.com/Marus/cortex-debug/blob/master/debug_attributes.md
 * Support J-Link, OpenOCD GDB Server, STMicroelectronic's ST-LINK GDB server, pyOCD and the Black Magic Probe
 * Partial support textane/stlink (st-util) GDB Servers (SWO can only be captured via a serial port)
@@ -65,7 +69,7 @@ See https://github.com/Marus/cortex-debug/wiki for usage information. This needs
 
 ### Live Watch
 
-The independent **Cortex Live Watch** panel appears in Run and Debug and works with official VS Code. Enable its second GDB connection in your launch or attach configuration:
+The independent **Live Watch** panel appears in Run and Debug and works with official VS Code. Enable its second GDB connection in your launch or attach configuration:
 
 ```json
 "liveWatch": {
@@ -76,7 +80,7 @@ The independent **Cortex Live Watch** panel appears in Run and Debug and works w
 
 Use the title-bar **+** to add expressions, **Refresh** for a single read, **Remove All Expressions** to clear the list, and **Enable/Disable Live Updates** to control continuous updates. Disabling updates freezes running values without reconnecting GDB or restarting the target. A manual refresh is still available, and pausing refreshes values once.
 
-The panel follows VS Code Watch conventions: `name: value` rows, expandable structures and arrays, highlighted value changes, F2 or the context menu to edit, Delete or the row's remove icon to delete, context-menu copying of values/expressions, and drag and drop to reorder top-level expressions. Editing uses VS Code's input box. The list and expansion state persist per workspace, including existing Live Watch expressions; expressions can be managed before starting a session.
+The panel follows VS Code Watch conventions: `name: value` rows, expandable structures and arrays, highlighted value changes, double-click, F2 or the context menu to edit, Delete or the row's remove icon to delete, context-menu copying of values/expressions, and drag and drop to reorder top-level expressions. Adding and editing happen directly in the sidebar row: click **+**, type an expression, press **Enter** to confirm or **Escape** to cancel. Validation errors appear under the input. Live refreshes preserve the draft and input focus; no popup input box is used. The list and expansion state persist per workspace, including existing Live Watch expressions; expressions can be managed before starting a session.
 
 Right-click any expression, structure member or array element and choose **Display Format** to select **Natural**, **Hexadecimal**, **Decimal**, **Binary**, or **Octal**. The choice applies only to that row and is saved with the workspace; a short format label appears beside the value. Choose **Default (Global / Expression)** to follow the existing global format or expression suffix again. Choosing a format triggers one read even when live updates are off, without turning continuous updates on. A parent's format does not automatically change its children.
 
@@ -96,8 +100,8 @@ This is a source-based compatibility implementation, not a hardware-validated su
 
 Make sure you have git, NodeJS and typescript installed on your PC before you begin. See: https://code.visualstudio.com/docs/setup/additional-components
 
-* `git clone https://github.com/Marus/cortex-debug.git`
-* `cd cortex-debug`
+* `git clone https://github.com/Evan-Xu-vibe/embedded-debug.git`
+* `cd embedded-debug`
 * Optionally switch to a branch: `git checkout <existing-branch-name>`
 * `npm install`
 * Optional `npm run compile`

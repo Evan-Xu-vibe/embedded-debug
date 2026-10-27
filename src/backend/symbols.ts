@@ -677,7 +677,7 @@ export class SymbolTable {
 
     private createFileMapCacheFileName(fileName: string, suffix = '') {
         const hash = this.getFileNameHashed(fileName) + suffix + '.json';
-        const fName = path.join(os.tmpdir(), 'Cortex-Debug-' + hash);
+        const fName = path.join(os.tmpdir(), 'Embedded Debug-' + hash);
         return fName;
     }
 */

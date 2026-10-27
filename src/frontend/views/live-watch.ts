@@ -14,16 +14,24 @@ interface SessionState {
 
 const WATCH_LIST_STATE = 'livewatch.watchTree';
 
+export interface LiveWatchViewState {
+    visible: boolean;
+    description?: string;
+    message?: string;
+}
+
 export class LiveWatchTreeProvider implements vscode.TreeDataProvider<LiveWatchNode>,
     vscode.TreeDragAndDropController<LiveWatchNode>, vscode.Disposable {
     public readonly dragMimeTypes = ['application/vnd.cortex-debug.live-watch'];
     public readonly dropMimeTypes = this.dragMimeTypes;
     private readonly changes = new vscode.EventEmitter<LiveWatchNode | undefined>();
     public readonly onDidChangeTreeData = this.changes.event;
+    private readonly edits = new vscode.EventEmitter<LiveWatchNode | undefined>();
+    public readonly onDidRequestEdit = this.edits.event;
     public readonly model = new LiveWatchModel();
     private readonly sessions = new Map<string, SessionState>();
     private active: SessionState | undefined;
-    private view: vscode.TreeView<LiveWatchNode> | undefined;
+    private view: LiveWatchViewState | undefined;
     private timer: NodeJS.Timeout | undefined;
     private revision = 0;
     private refreshing = false;
@@ -41,7 +49,7 @@ export class LiveWatchTreeProvider implements vscode.TreeDataProvider<LiveWatchN
         }));
     }
 
-    public attachView(view: vscode.TreeView<LiveWatchNode>) {
+    public attachView(view: LiveWatchViewState) {
         this.view = view;
         this.visible = view.visible;
         this.updateState();
@@ -57,6 +65,7 @@ export class LiveWatchTreeProvider implements vscode.TreeDataProvider<LiveWatchN
         this.disposed = true;
         this.invalidate();
         this.changes.dispose();
+        this.edits.dispose();
     }
 
     private invalidate() {
@@ -78,13 +87,14 @@ export class LiveWatchTreeProvider implements vscode.TreeDataProvider<LiveWatchN
         if (this.view) {
             this.view.description = state?.session.name;
             this.view.message = !state
-                ? 'Start a Cortex-Debug session with liveWatch.enabled to read global/static expressions.'
+                ? 'Start a Embedded Debug session with liveWatch.enabled to read global/static expressions.'
                 : !state.available
                         ? 'Waiting for the Live GDB connection. Check liveWatch.enabled and the Debug Console.'
                         : !state.running
                                 ? 'Target paused · global/static values'
                                 : state.enabled ? 'Target running · live updates on' : 'Live updates off · values frozen';
         }
+        this.fire();
     }
 
     public saveState() {
@@ -253,17 +263,25 @@ export class LiveWatchTreeProvider implements vscode.TreeDataProvider<LiveWatchN
         this.refresh();
     }
 
-    public async editNode(node: LiveWatchNode) {
-        if (!this.model.roots.includes(node)) { return; }
-        const value = await vscode.window.showInputBox({
-            value: node.expression, prompt: 'Watch expression (global/static scope)', ignoreFocusOut: true,
-            validateInput: (expression) => !expression.trim()
-                ? 'Enter an expression'
-                : this.model.roots.some((other) => other !== node && other.expression === expression.trim())
-                    ? 'This expression is already watched'
-                    : undefined
-        });
-        if (value !== undefined && this.model.edit(node, value)) { this.changed(); }
+    public editNode(node?: LiveWatchNode) {
+        if (node && !this.model.roots.includes(node)) { return; }
+        this.edits.fire(node);
+    }
+
+    public commitExpression(id: string | undefined, expression: string): { id?: string; error?: string } {
+        expression = expression.trim();
+        if (!expression) { return { error: 'Enter an expression' }; }
+        const node = id ? this.model.roots.find((entry) => entry.id === id) : undefined;
+        if (id && !node) { return { error: 'This expression was removed. Press Escape to cancel.' }; }
+        if (this.model.roots.some((entry) => entry !== node && entry.expression === expression)) {
+            return { error: 'This expression is already watched' };
+        }
+        if (node) {
+            this.model.edit(node, expression);
+        }
+        const result = node || this.model.add(expression);
+        this.changed();
+        return { id: result.id };
     }
 
     public moveUpNode(node: LiveWatchNode) {
@@ -306,6 +324,10 @@ export class LiveWatchTreeProvider implements vscode.TreeDataProvider<LiveWatchN
 
     public handleDrop(target: LiveWatchNode | undefined, transfer: vscode.DataTransfer) {
         const source = transfer.get(this.dragMimeTypes[0])?.value as LiveWatchNode[] | undefined;
+        this.reorder(source, target);
+    }
+
+    public reorder(source: LiveWatchNode[] | undefined, target?: LiveWatchNode) {
         if (!Array.isArray(source) || !source.length || (target && !this.model.roots.includes(target)) || source.includes(target)) { return; }
         const nodes = source.filter((node) => this.model.roots.includes(node));
         if (!nodes.length) { return; }

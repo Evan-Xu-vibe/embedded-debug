@@ -11,5 +11,6 @@ vsc-extension-quickstart.md
 webpack.config.js
 node_modules
 binary_modules
+LIVE_WATCH_HANDOFF.md
 
 !node_modules/@vscode/webview-ui-toolkit

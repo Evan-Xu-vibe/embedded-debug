@@ -35,7 +35,7 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
 
     public provideDebugConfigurations(): vscode.ProviderResult<vscode.DebugConfiguration[]> {
         return [{
-            name: 'Cortex Debug',
+            name: 'Embedded Debug',
             cwd: '${workspaceFolder}',
             executable: './bin/executable.elf',
             request: 'launch',
@@ -136,7 +136,7 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
         if (config.runToEntryPoint) { config.runToEntryPoint = config.runToEntryPoint.trim(); } else if (config.runToMain) {
             config.runToEntryPoint = 'main';
             vscode.window.showWarningMessage(
-                'launch.json: "runToMain" has been deprecated and will not work in future versions of Cortex-Debug. Please use "runToEntryPoint" instead');
+                'launch.json: "runToMain" has been deprecated and will not work in future versions of Embedded Debug. Please use "runToEntryPoint" instead');
         }
 
         if ((type !== 'openocd') || !config.ctiOpenOCDConfig?.enabled) {
@@ -257,8 +257,7 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
         }
         this.validateLoadAndSymbolFiles(config, cwd);
 
-        const extension = vscode.extensions.getExtension('marus25.cortex-debug');
-        config.pvtVersion = extension?.packageJSON?.version || '<unknown version>';
+        config.pvtVersion = this.context.extension?.packageJSON?.version || '<unknown version>';
 
         if (config.liveWatch?.enabled) {
             const supportedList = ['openocd', 'jlink', 'stlink'];

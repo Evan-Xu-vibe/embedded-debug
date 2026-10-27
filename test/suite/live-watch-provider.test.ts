@@ -231,4 +231,19 @@ suite('Live Watch panel lifecycle', () => {
         assert.equal(saved.get('livewatch.watchTree').children[0].format, 'binary');
         assert.equal(provider.getTreeItem(provider.model.roots[0]).description, 'binary');
     });
+
+    test('Commits inline additions and edits with validation and workspace persistence', () => {
+        assert.deepEqual(provider.commitExpression(undefined, ' '), { error: 'Enter an expression' });
+        const first = provider.commitExpression(undefined, ' counter ');
+        assert.ok(first.id);
+        assert.equal(provider.model.roots[0].expression, 'counter');
+        assert.equal(saved.get('livewatch.watchTree').children[0].expr, 'counter');
+        assert.match(provider.commitExpression(undefined, 'counter').error, /already watched/);
+        provider.commitExpression(undefined, 'state');
+        assert.match(provider.commitExpression(first.id, 'state').error, /already watched/);
+        assert.deepEqual(provider.commitExpression(first.id, 'ticks'), { id: first.id });
+        assert.equal(provider.model.roots[0].expression, 'ticks');
+        assert.equal(saved.get('livewatch.watchTree').children[0].expr, 'ticks');
+        assert.match(provider.commitExpression('removed-id', 'new').error, /removed/);
+    });
 });

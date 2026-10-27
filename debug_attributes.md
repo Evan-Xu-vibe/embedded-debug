@@ -70,7 +70,7 @@ If the type is marked as `{...}` it means that it is a complex item can have mul
 | preResetCommands | string[] | Both | Additional GDB Commands to be executed at the start of the reset sequence. When undefined the deprecated preRestartCommands is used. |
 | rtos | string | Both | RTOS being used. For JLink this can be Azure, ChibiOS, embOS, FreeRTOS, NuttX, Zephyr or the path to a custom JLink RTOS Plugin library. For OpenOCD this can be auto (recommended), FreeRTOS, ThreadX, chibios, Chromium-EC, eCos, embKernel, linux, mqx, nuttx, RIOT, uCOS-III, or Zephyr. |
 | rttConfig | object | Both | SEGGER's Real Time Trace (RTT) and supported by JLink, OpenOCD and perhaps others in the future |
-| rttConfig<br>.address | string | Both | Address to start searching for the RTT control block. Use "auto" for Cortex-Debug to use the address from elf file |
+| rttConfig<br>.address | string | Both | Address to start searching for the RTT control block. Use "auto" for Embedded Debug to use the address from elf file |
 | rttConfig<br>.clearSearch | boolean | Both | When true, clears the search-string. Only applicable when address is "auto" |
 | rttConfig<br>.decoders | {object} | Both | SWO Decoder Configuration |
 | rttConfig<br>.enabled | boolean | Both | Enable/Disable RTT |

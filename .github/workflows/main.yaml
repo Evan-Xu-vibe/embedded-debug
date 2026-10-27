@@ -1,4 +1,4 @@
-name: CI
+name: Embedded Debug CI
 
 on:
   push:
@@ -43,15 +43,13 @@ jobs:
         with:
           path: ./node_modules
           key: npm-${{ hashFiles('./package-lock.json') }}
-      - name: Install VSCE for packaging
-        run: npm install vsce
-      - name: Package Binary
-        run: ./node_modules/vsce/vsce package -o cortex-debug.vsix
+      - name: Package Embedded Debug
+        run: npx --yes --package @vscode/vsce vsce package --pre-release --out embedded-debug.vsix
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: cortex-debug.vsix
-          path: ./cortex-debug.vsix
+          name: embedded-debug.vsix
+          path: ./embedded-debug.vsix
 
   lint:
     name: Lint

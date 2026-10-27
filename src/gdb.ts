@@ -416,7 +416,7 @@ export class GDBDebugSession extends LoggingDebugSession {
         this.args = this.normalizeArguments(args);
 
         this.handleMsg('stdout',
-            `Cortex-Debug: VSCode debugger extension version ${args.pvtVersion} git(${__COMMIT_HASH__}). `
+            `Embedded Debug: VSCode debugger extension version ${args.pvtVersion} git(${__COMMIT_HASH__}). `
             + 'Usage info: https://github.com/Marus/cortex-debug#usage');
         if (this.args.showDevDebugOutput) {
             this.handleMsg('stderr', `INFO: A log of gdb-servers, gdb, debug adapter start/stop/pid info can be found in '${getServerLogFilePath()}'.\n`);

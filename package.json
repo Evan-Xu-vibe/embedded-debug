@@ -1,5 +1,5 @@
 {
-    "version": "1.13.0-pre11",
+    "version": "1.13.0-pre12",
     "preview": false,
     "activationEvents": [
         "onDebugResolve:cortex-debug",
@@ -451,22 +451,22 @@
                 "icon": "$(plus)"
             },
             {
-                "category": "Cortex-Debug",
+                "category": "Embedded Debug",
                 "command": "cortex-debug.examineMemory",
                 "title": "View Memory"
             },
             {
-                "category": "Cortex-Debug",
+                "category": "Embedded Debug",
                 "command": "cortex-debug.examineMemoryLegacy",
                 "title": "View Memory (Legacy)"
             },
             {
-                "category": "Cortex-Debug",
+                "category": "Embedded Debug",
                 "command": "cortex-debug.toggleVariableHexFormat",
                 "title": "Toggle hex display in Variables window"
             },
             {
-                "category": "Cortex-Debug",
+                "category": "Embedded Debug",
                 "command": "cortex-debug.liveWatch.addExpr",
                 "title": "Add expression to Live Watch window",
                 "icon": "$(plus)"
@@ -474,66 +474,66 @@
             {
                 "command": "cortex-debug.liveWatch.turnOn",
                 "title": "Enable Live Updates",
-                "category": "Cortex-Debug",
+                "category": "Embedded Debug",
                 "icon": "$(play)"
             },
             {
                 "command": "cortex-debug.liveWatch.turnOff",
                 "title": "Disable Live Updates",
-                "category": "Cortex-Debug",
+                "category": "Embedded Debug",
                 "icon": "$(debug-pause)"
             },
             {
                 "command": "cortex-debug.liveWatch.refresh",
                 "title": "Refresh Live Watch",
-                "category": "Cortex-Debug",
+                "category": "Embedded Debug",
                 "icon": "$(refresh)"
             },
             {
                 "command": "cortex-debug.liveWatch.removeAll",
                 "title": "Remove All Expressions",
-                "category": "Cortex-Debug",
+                "category": "Embedded Debug",
                 "icon": "$(close-all)"
             },
             {
                 "command": "cortex-debug.liveWatch.copyValue",
                 "title": "Copy Value",
-                "category": "Cortex-Debug"
+                "category": "Embedded Debug"
             },
             {
                 "command": "cortex-debug.liveWatch.copyExpression",
                 "title": "Copy Expression",
-                "category": "Cortex-Debug"
+                "category": "Embedded Debug"
             },
             {
                 "command": "cortex-debug.liveWatch.format.default",
                 "title": "Default (Global / Expression)",
-                "category": "Cortex-Debug"
+                "category": "Embedded Debug"
             },
             {
                 "command": "cortex-debug.liveWatch.format.natural",
                 "title": "Natural",
-                "category": "Cortex-Debug"
+                "category": "Embedded Debug"
             },
             {
                 "command": "cortex-debug.liveWatch.format.hexadecimal",
                 "title": "Hexadecimal",
-                "category": "Cortex-Debug"
+                "category": "Embedded Debug"
             },
             {
                 "command": "cortex-debug.liveWatch.format.decimal",
                 "title": "Decimal",
-                "category": "Cortex-Debug"
+                "category": "Embedded Debug"
             },
             {
                 "command": "cortex-debug.liveWatch.format.binary",
                 "title": "Binary",
-                "category": "Cortex-Debug"
+                "category": "Embedded Debug"
             },
             {
                 "command": "cortex-debug.liveWatch.format.octal",
                 "title": "Octal",
-                "category": "Cortex-Debug"
+                "category": "Embedded Debug"
             }
         ],
         "keybindings": [
@@ -541,23 +541,13 @@
                 "command": "cortex-debug.toggleVariableHexFormat",
                 "key": "ctrl+shift+x",
                 "when": "debugType == cortex-debug"
-            },
-            {
-                "command": "cortex-debug.liveWatch.editExpr",
-                "key": "f2",
-                "when": "view == cortex-debug.liveWatch && listFocus && !inputFocus"
-            },
-            {
-                "command": "cortex-debug.liveWatch.removeExpr",
-                "key": "delete",
-                "when": "view == cortex-debug.liveWatch && listFocus && !inputFocus"
             }
         ],
         "languages": [
             {
                 "id": "cortex-debug.memoryview",
                 "aliases": [
-                    "Cortex-Debug Memory View"
+                    "Embedded Debug Memory View"
                 ],
                 "extensions": [
                     ".cdmem"
@@ -1223,7 +1213,7 @@
                                     },
                                     "address": {
                                         "type": "string",
-                                        "description": "Address to start searching for the RTT control block. Use \"auto\" for Cortex-Debug to use the address from elf file",
+                                        "description": "Address to start searching for the RTT control block. Use \"auto\" for Embedded Debug to use the address from elf file",
                                         "default": "auto"
                                     },
                                     "searchSize": {
@@ -2448,7 +2438,7 @@
                                     },
                                     "address": {
                                         "type": "string",
-                                        "description": "Address to start searching for the RTT control block. Use \"auto\" for Cortex-Debug to use the address from elf file",
+                                        "description": "Address to start searching for the RTT control block. Use \"auto\" for Embedded Debug to use the address from elf file",
                                         "default": "auto"
                                     },
                                     "searchSize": {
@@ -3010,7 +3000,7 @@
                             "servertype": "jlink"
                         },
                         "description": "Debugs an embedded ARM Cortex-M microcontroller using GDB + JLink",
-                        "label": "Cortex Debug: JLink"
+                        "label": "Embedded Debug: JLink"
                     },
                     {
                         "body": {
@@ -3026,7 +3016,7 @@
                             "showDevDebugOutput": "none"
                         },
                         "description": "Debugs an embedded ARM Cortex-M microcontroller using GDB + OpenOCD",
-                        "label": "Cortex Debug: OpenOCD"
+                        "label": "Embedded Debug: OpenOCD"
                     },
                     {
                         "body": {
@@ -3040,7 +3030,7 @@
                             "servertype": "stlink"
                         },
                         "description": "Debugs an embedded ARM Cortex-M microcontroller using GDB + STMicroelectronic's ST-LINK_gdbserver part of STM32CubeIDE",
-                        "label": "Cortex Debug: ST-LINK"
+                        "label": "Embedded Debug: ST-LINK"
                     },
                     {
                         "body": {
@@ -3054,7 +3044,7 @@
                             "servertype": "pyocd"
                         },
                         "description": "Debugs an embedded ARM Cortex-M microcontroller using GDB + PyOCD",
-                        "label": "Cortex Debug: PyOCD"
+                        "label": "Embedded Debug: PyOCD"
                     },
                     {
                         "body": {
@@ -3068,10 +3058,10 @@
                             "servertype": "stutil"
                         },
                         "description": "Debugs an embedded ARM Cortex-M microcontroller using GDB + Texane's st-util GDB Server (https://github.com/texane/stlink)",
-                        "label": "Cortex Debug: ST-Util"
+                        "label": "Embedded Debug: ST-Util"
                     }
                 ],
-                "label": "Cortex Debug",
+                "label": "Embedded Debug",
                 "program": "./dist/debugadapter.js",
                 "runtime": "node",
                 "type": "cortex-debug",
@@ -3180,43 +3170,6 @@
                     "when": "debugType == cortex-debug"
                 }
             ],
-            "view/item/context": [
-                {
-                    "command": "cortex-debug.liveWatch.editExpr",
-                    "when": "view == cortex-debug.liveWatch && viewItem == expression",
-                    "group": "1_modification@1"
-                },
-                {
-                    "command": "cortex-debug.liveWatch.moveUp",
-                    "when": "view == cortex-debug.liveWatch && viewItem == expression",
-                    "group": "3_move@1"
-                },
-                {
-                    "command": "cortex-debug.liveWatch.moveDown",
-                    "when": "view == cortex-debug.liveWatch && viewItem == expression",
-                    "group": "3_move@2"
-                },
-                {
-                    "command": "cortex-debug.liveWatch.removeExpr",
-                    "when": "view == cortex-debug.liveWatch && viewItem == expression",
-                    "group": "inline"
-                },
-                {
-                    "command": "cortex-debug.liveWatch.copyValue",
-                    "when": "view == cortex-debug.liveWatch",
-                    "group": "2_copy"
-                },
-                {
-                    "command": "cortex-debug.liveWatch.copyExpression",
-                    "when": "view == cortex-debug.liveWatch",
-                    "group": "2_copy"
-                },
-                {
-                    "submenu": "cortex-debug.liveWatch.displayFormat",
-                    "when": "view == cortex-debug.liveWatch",
-                    "group": "2_format"
-                }
-            ],
             "view/title": [
                 {
                     "command": "cortex-debug.liveWatch.addExpr",
@@ -3300,22 +3253,54 @@
                 {
                     "command": "cortex-debug.liveWatch.format.octal"
                 }
+            ],
+            "webview/context": [
+                {
+                    "command": "cortex-debug.liveWatch.editExpr",
+                    "when": "webviewId == cortex-debug.liveWatch && webviewSection == liveWatch && liveWatchRoot",
+                    "group": "1_modification@1"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.moveUp",
+                    "when": "webviewId == cortex-debug.liveWatch && webviewSection == liveWatch && liveWatchRoot",
+                    "group": "3_move@1"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.moveDown",
+                    "when": "webviewId == cortex-debug.liveWatch && webviewSection == liveWatch && liveWatchRoot",
+                    "group": "3_move@2"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.removeExpr",
+                    "when": "webviewId == cortex-debug.liveWatch && webviewSection == liveWatch && liveWatchRoot",
+                    "group": "1_modification@2"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.copyValue",
+                    "when": "webviewId == cortex-debug.liveWatch && webviewSection == liveWatch",
+                    "group": "2_copy"
+                },
+                {
+                    "command": "cortex-debug.liveWatch.copyExpression",
+                    "when": "webviewId == cortex-debug.liveWatch && webviewSection == liveWatch",
+                    "group": "2_copy"
+                },
+                {
+                    "submenu": "cortex-debug.liveWatch.displayFormat",
+                    "when": "webviewId == cortex-debug.liveWatch && webviewSection == liveWatch",
+                    "group": "2_format"
+                }
             ]
         },
         "views": {
             "debug": [
                 {
                     "id": "cortex-debug.liveWatch",
-                    "name": "Cortex Live Watch"
+                    "name": "Live Watch",
+                    "type": "webview"
                 }
             ]
         },
-        "viewsWelcome": [
-            {
-                "view": "cortex-debug.liveWatch",
-                "contents": "Watch global and static expressions while your target runs.\n[Add Expression](command:cortex-debug.liveWatch.addExpr)\nEnable liveWatch.enabled in launch.json to connect Live GDB."
-            }
-        ],
         "submenus": [
             {
                 "id": "cortex-debug.liveWatch.displayFormat",
@@ -3347,7 +3332,7 @@
         "uuid": "^14.0.1",
         "vscode-jsonrpc": "^8.2.1"
     },
-    "description": "ARM Cortex-M GDB Debugger support for VSCode",
+    "description": "Embedded GDB debugging with inline Live Watch, per-variable display formats, and modern pyOCD compatibility.",
     "devDependencies": {
         "@stylistic/eslint-plugin": "^2.13.0",
         "@types/mocha": "^10.0.10",
@@ -3364,7 +3349,7 @@
         "webpack": "^5.105.0",
         "webpack-cli": "^6.0.1"
     },
-    "displayName": "Cortex-Debug",
+    "displayName": "Embedded Debug",
     "engines": {
         "vscode": "^1.69.0"
     },
@@ -3382,18 +3367,18 @@
         "mcu-debug.peripheral-viewer"
     ],
     "main": "./dist/extension.js",
-    "name": "cortex-debug",
-    "publisher": "marus25",
+    "name": "embedded-debug",
+    "publisher": "evan-xu-vibe",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Marus/cortex-debug.git"
+        "url": "https://github.com/Evan-Xu-vibe/embedded-debug.git"
     },
     "bugs": {
-        "url": "https://github.com/Marus/cortex-debug/issues"
+        "url": "https://github.com/Evan-Xu-vibe/embedded-debug/issues"
     },
     "scripts": {
-        "vscode:prepublish": "npm run lint && webpack --mode production && node dist/docgen.js && npm ci -C binary_modules --omit dev && cp -a binary_modules/node_modules dist/",
+        "vscode:prepublish": "npm run lint && webpack --mode production && node dist/docgen.js && npm ci -C binary_modules --omit dev && node -e \"require('fs').cpSync('binary_modules/node_modules', 'dist/node_modules', { recursive: true })\"",
         "watch": "webpack --mode development --watch",
         "compile": "webpack --mode development && node dist/docgen.js",
         "test-compile": "tsc -p ./",
