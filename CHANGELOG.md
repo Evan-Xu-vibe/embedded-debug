@@ -1,6 +1,7 @@
 # ChangeLog
 
 # V1.13.0-pre11
+* Added a pyOCD 0.45.0-compatible Live Watch connection path with version diagnostics, bounded startup and auxiliary debugger cleanup (hardware validation pending)
 * Added per-row Live Watch display formats (including binary) through the context menu; selections persist for expressions and expanded members
 * Reworked the independent Live Watch panel with Watch-style expression editing, copying, drag-and-drop ordering, refresh controls and a per-session live-update switch. Preserves existing expressions and stops polling when hidden
 * BugFix[#1261] Keep split GDB/MI result tokens in stdout buffer

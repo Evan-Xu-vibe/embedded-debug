@@ -9,6 +9,7 @@ import {
 } from '../common';
 import { CDebugChainedSessionItem, CDebugSession } from './cortex_debug_session';
 import * as path from 'path';
+import { checkPyOCDLiveWatchVersion } from '../pyocd-version';
 
 // Please confirm these names with OpenOCD source code. Their docs are incorrect as to case
 const OPENOCD_VALID_RTOS: string[] = [
@@ -237,11 +238,11 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
         return config;
     }
 
-    public resolveDebugConfigurationWithSubstitutedVariables(
+    public async resolveDebugConfigurationWithSubstitutedVariables(
         folder: vscode.WorkspaceFolder | undefined,
         config: vscode.DebugConfiguration,
         token?: vscode.CancellationToken
-    ): vscode.ProviderResult<vscode.DebugConfiguration> {
+    ): Promise<vscode.DebugConfiguration | undefined> {
         const wsFile = vscode.workspace.workspaceFile?.fsPath;
         let cwd = config.cwd || folder?.uri.fsPath || (wsFile ? path.dirname(wsFile) : '.');
         const isAbsCwd = path.isAbsolute(cwd);
@@ -261,7 +262,17 @@ export class CortexDebugConfigurationProvider implements vscode.DebugConfigurati
 
         if (config.liveWatch?.enabled) {
             const supportedList = ['openocd', 'jlink', 'stlink'];
-            if (supportedList.indexOf(config.servertype) < 0) {
+            if (config.servertype === 'pyocd') {
+                const result = await checkPyOCDLiveWatchVersion(config.serverpath || 'pyocd', config.cwd);
+                if (result.status !== 'compatible') {
+                    vscode.window.showWarningMessage(
+                        `Live Watch with pyOCD requires the multi-client support available in 0.45.0. `
+                        + (result.status === 'old'
+                            ? `Detected pyOCD ${result.version}. `
+                            : `Could not confirm a compatible released pyOCD version${result.version ? ` (${result.version})` : ''}. `)
+                        + 'Live Watch will still be attempted; a failed connection will leave normal debugging available.');
+                }
+            } else if (supportedList.indexOf(config.servertype) < 0) {
                 const str = supportedList.join(', ');
                 vscode.window.showInformationMessage(
                     `Live watch is not officially supported for servertype '${config.servertype}'. `

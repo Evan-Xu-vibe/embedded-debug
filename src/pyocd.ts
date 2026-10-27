@@ -44,6 +44,11 @@ export class PyOCDServerController extends EventEmitter implements GDBServerCont
         return commands;
     }
 
+    public liveGdbInitCommands(): string[] {
+        // A second client shares this core's GDB port. Never reset, load or resume from this connection.
+        return this.initCommands();
+    }
+
     public attachCommands(): string[] {
         const commands = [
             'interpreter-exec console "monitor halt"'

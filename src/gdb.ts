@@ -44,6 +44,7 @@ import { SymbolTable } from './backend/symbols';
 import { SymbolInformation, SymbolScope } from './symbols';
 import { TcpPortScanner } from './tcpportscanner';
 import { LiveWatchMonitor } from './live-watch-monitor';
+import { startLiveWatchDebugger } from './live-watch-startup';
 
 // returns [threadId, frameId]
 // We use 3 nibbles for frameId (max of 4K) and 2 nibbles for ThreadId (max of 256).
@@ -959,6 +960,7 @@ export class GDBDebugSession extends LoggingDebugSession {
                             this.sendLiveWatchState();
                         } catch (e) {
                             this.handleMsg('stderr', `Failed to start live-monitor-gdb session. Error: ${e}\n`);
+                            this.sendLiveWatchState();
                         }
                     }
                 }
@@ -1100,13 +1102,16 @@ export class GDBDebugSession extends LoggingDebugSession {
         return ret;
     }
 
-    private getServerConnectCommands() {
+    private getServerConnectCommands(forLiveWatch = false) {
         // server init commands simply makes a tcp connection. It should not halt
         // the program. After the connection is established, we should load all the
         // symbols -- especially before a halt
+        const serverInit = forLiveWatch && this.serverController.liveGdbInitCommands
+            ? this.serverController.liveGdbInitCommands()
+            : this.serverController.initCommands();
         const cmds: string[] = [
             // 'interpreter-exec console "set debug remote 1"',
-            ...this.serverController.initCommands() || [],
+            ...(serverInit || []),
             ...this.symInitCommands
         ];
         return cmds;
@@ -1123,9 +1128,9 @@ export class GDBDebugSession extends LoggingDebugSession {
         commands.push('interpreter-exec console "set stack-cache off"');
         commands.push('interpreter-exec console "set remote interrupt-on-connect off"');
         if (this.serverController) {
-            commands.push(...this.getServerConnectCommands());
+            commands.push(...this.getServerConnectCommands(true));
         }
-        const ret = mi2.start(this.args.cwd, commands);
+        const ret = startLiveWatchDebugger(mi2, this.args.cwd, commands);
         return ret;
     }
 

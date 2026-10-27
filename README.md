@@ -84,6 +84,14 @@ The active Cortex-Debug session supplies the values and has its own live-update 
 
 Refreshes respect both `liveWatch.samplesPerSecond` and `cortex-debug.liveWatchRefreshRate`, with a minimum 200ms interval. Slow reads are serialized. The GDB server must support a second connection and memory access while the target runs; the existing Live Watch backend supports OpenOCD, J-Link and ST-LINK. The new panel workflow has not yet been verified against real hardware.
 
+#### pyOCD Live Watch
+
+The pyOCD path targets the multi-client GDB server available in pyOCD 0.45.0. Set `servertype` to `pyocd` and enable `liveWatch` as above. Both GDB clients connect to the same selected core's port; an additional server or Live Watch port is not needed. The adapter queries the configured pyOCD executable with `--version` (up to 3 seconds) only when Live Watch is enabled. Older, development or unrecognized versions receive a warning and can still attempt a connection.
+
+The live connection is established during the initial paused phase, before normal execution resumes: pyOCD halts the target when accepting a new client. The live client does not issue reset, download or continue commands. There is no automatic reconnection while running. Live GDB initialization has a 15-second timeout; startup failure closes the auxiliary debugger and leaves normal debugging available.
+
+This is a source-based compatibility implementation, not a hardware-validated support claim. Verify your pyOCD release, target and probe with changing global values, array/structure expansion, pause/resume, breakpoints, reset, disconnect and Live GDB failure. Upstream references: [multi-client GDB server](https://github.com/pyocd/pyOCD/blob/v0.45.0/pyocd/gdbserver/gdbserver.py), [running-target memory cache invalidation](https://github.com/pyocd/pyOCD/blob/v0.45.0/pyocd/cache/memory.py).
+
 ## How to Build from sources
 
 Make sure you have git, NodeJS and typescript installed on your PC before you begin. See: https://code.visualstudio.com/docs/setup/additional-components

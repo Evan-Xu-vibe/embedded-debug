@@ -420,7 +420,12 @@ export class MI2 extends EventEmitter implements IBackend {
             const proc = this.process;
             try {
                 ServerConsoleLog('GDB kill()', this.pid);
-                process.kill(-proc.pid);
+                // Live GDB is an auxiliary process, not a server process group.
+                if (this.forLiveGdb || process.platform === 'win32') {
+                    proc.kill();
+                } else {
+                    process.kill(-proc.pid);
+                }
             } catch (e) {
                 this.log('log', `kill failed for ${-proc.pid}` + e);
                 this.onExit(-1, '');      // Process already died or quit. Cleanup
